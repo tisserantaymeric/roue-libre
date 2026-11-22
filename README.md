@@ -28,15 +28,17 @@ Testé sur Debian 13, Ubuntu 24.04 et dérivés (Mint…). Ouvrez un terminal da
 le dossier du projet :
 
 ```sh
-./install.sh
+sh install.sh
 ```
 
 Le script installe les dépendances système (via `sudo`), crée l'environnement
 Python et prépare le lanceur. Pour lancer l'application ensuite :
 
 ```sh
-./run.sh
+sh run.sh
 ```
+
+Après la première installation, `./run.sh` fonctionne aussi.
 
 Sans matériel sous la main, cliquez sur **« Mode démo »** : un home trainer
 virtuel permet d'essayer tout le logiciel (touches ↑ / ↓ pour moduler

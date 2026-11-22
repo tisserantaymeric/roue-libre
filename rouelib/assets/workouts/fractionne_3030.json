@@ -1,0 +1,33 @@
+{
+  "name": "Fractionné 30/30",
+  "description": "30 secondes fort, 30 secondes souple — 12 répétitions. Court et intense.",
+  "segments": [
+    {"duration_s": 300, "ftp_pct": 50, "label": "Échauffement"},
+    {"duration_s": 60, "ftp_pct": 75, "label": "Préparation"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 30, "ftp_pct": 120, "label": "Fort !"},
+    {"duration_s": 30, "ftp_pct": 55, "label": "Souple"},
+    {"duration_s": 300, "ftp_pct": 45, "label": "Retour au calme"}
+  ]
+}

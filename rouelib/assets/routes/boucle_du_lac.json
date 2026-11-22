@@ -1,0 +1,22 @@
+{
+  "name": "Boucle du Lac",
+  "description": "Roulage facile autour d'un lac de plaine — idéal pour découvrir l'application.",
+  "theme": {
+    "sky_top": "#7ec8e3",
+    "sky_bottom": "#cdeaf5",
+    "hill_far": "#8fa8bf",
+    "hill_near": "#6f8f6a",
+    "ground": "#4e7a45",
+    "road": "#4a4d52",
+    "accent": "#f5a623",
+    "scenery": "lake"
+  },
+  "segments": [
+    {"km": 6, "grade": 0.0},
+    {"km": 2, "grade": 1.5},
+    {"km": 5, "grade": -0.5},
+    {"km": 3, "grade": 2.0},
+    {"km": 9, "grade": 0.0},
+    {"km": 2, "grade": -1.0}
+  ]
+}

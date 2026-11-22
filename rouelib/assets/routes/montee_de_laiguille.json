@@ -1,0 +1,23 @@
+{
+  "name": "Montée de l'Aiguille",
+  "description": "Un vrai test : 12 km de montée régulière, avec un dénivelé de plus de 700 m.",
+  "theme": {
+    "sky_top": "#3d5a80",
+    "sky_bottom": "#9db4c0",
+    "hill_far": "#6a7b8c",
+    "hill_near": "#55636f",
+    "ground": "#4e5d4e",
+    "road": "#44474d",
+    "accent": "#ef476f",
+    "scenery": "pines"
+  },
+  "segments": [
+    {"km": 2, "grade": 1.5},
+    {"km": 3, "grade": 4.0},
+    {"km": 2, "grade": 6.5},
+    {"km": 1.5, "grade": 3.5},
+    {"km": 2.5, "grade": 8.0},
+    {"km": 1, "grade": 5.0},
+    {"km": 12, "grade": -6.0}
+  ]
+}

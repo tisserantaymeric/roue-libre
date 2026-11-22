@@ -1,0 +1,13 @@
+{
+  "name": "Côtes progressives",
+  "description": "Trois montées de plus en plus longues et intensives. Rogne les jambes !",
+  "segments": [
+    {"duration_s": 300, "ftp_pct": 50, "label": "Échauffement"},
+    {"duration_s": 180, "ftp_pct": 85, "label": "Côte 1"},
+    {"duration_s": 180, "ftp_pct": 55, "label": "Récup"},
+    {"duration_s": 300, "ftp_pct": 90, "label": "Côte 2"},
+    {"duration_s": 180, "ftp_pct": 55, "label": "Récup"},
+    {"duration_s": 480, "ftp_pct": 95, "label": "Côte 3"},
+    {"duration_s": 300, "ftp_pct": 45, "label": "Retour au calme"}
+  ]
+}

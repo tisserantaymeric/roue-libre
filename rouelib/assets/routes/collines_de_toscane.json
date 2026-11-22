@@ -1,0 +1,25 @@
+{
+  "name": "Collines de Toscane",
+  "description": "Vallonné doux entre cyprès et vignes — séance d'endurance agréable.",
+  "theme": {
+    "sky_top": "#7fb2d9",
+    "sky_bottom": "#f2d5a0",
+    "hill_far": "#a08c6a",
+    "hill_near": "#7a6a45",
+    "ground": "#6d7a3a",
+    "road": "#4a4d52",
+    "accent": "#e07b39",
+    "scenery": "trees"
+  },
+  "segments": [
+    {"km": 4, "grade": 1.0},
+    {"km": 3, "grade": 4.5},
+    {"km": 2, "grade": 2.0},
+    {"km": 4, "grade": -2.5},
+    {"km": 3, "grade": 5.5},
+    {"km": 2, "grade": 1.5},
+    {"km": 5, "grade": -2.0},
+    {"km": 3, "grade": 3.5},
+    {"km": 4, "grade": -1.5}
+  ]
+}

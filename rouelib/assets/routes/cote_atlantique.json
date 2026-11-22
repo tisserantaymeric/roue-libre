@@ -1,0 +1,21 @@
+{
+  "name": "Côte Atlantique",
+  "description": "Long faux-plat côtier avec vent de face — parfait pour rouler longtemps.",
+  "theme": {
+    "sky_top": "#5f97c9",
+    "sky_bottom": "#bfe0ea",
+    "hill_far": "#9db3b8",
+    "hill_near": "#c2b280",
+    "ground": "#e0d3a3",
+    "road": "#4a4d52",
+    "accent": "#2a9d8f",
+    "scenery": "dunes"
+  },
+  "segments": [
+    {"km": 10, "grade": 1.2},
+    {"km": 4, "grade": 3.0},
+    {"km": 6, "grade": 0.5},
+    {"km": 3, "grade": 4.0},
+    {"km": 12, "grade": -1.5}
+  ]
+}

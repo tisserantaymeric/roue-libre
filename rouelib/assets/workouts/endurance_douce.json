@@ -1,0 +1,11 @@
+{
+  "name": "Endurance douce",
+  "description": "45 minutes en zone 2 : à faire en bavardant. La base de toute progression.",
+  "segments": [
+    {"duration_s": 300, "ftp_pct": 50, "label": "Échauffement"},
+    {"duration_s": 1500, "ftp_pct": 65, "label": "Endurance"},
+    {"duration_s": 300, "ftp_pct": 55, "label": "Détente"},
+    {"duration_s": 600, "ftp_pct": 68, "label": "Endurance"},
+    {"duration_s": 300, "ftp_pct": 45, "label": "Retour au calme"}
+  ]
+}

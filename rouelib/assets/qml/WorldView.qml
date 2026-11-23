@@ -36,6 +36,8 @@ View3D {
     PerspectiveCamera {
         id: camera
         fieldOfView: 55
+        clipNear: 0.1
+        clipFar: 30000
         position: Qt.vector3d(worldBridge.cx, worldBridge.cy, worldBridge.cz)
         eulerRotation.y: worldBridge.camYaw
         eulerRotation.x: worldBridge.camPitch

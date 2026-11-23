@@ -151,6 +151,7 @@ class World3DView(QQuickWidget):
     def _on_status(self, status):
         if status == QQuickWidget.Status.Error:
             details = "; ".join(str(e.toString()) for e in self.errors())
+            print("[Roue Libre] Vue 3D indisponible, repli sur la vue 2D :", details)
             self.error_occurred.emit(details)
 
     def update_state(self, snap: dict):

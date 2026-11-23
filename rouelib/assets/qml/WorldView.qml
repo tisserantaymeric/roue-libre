@@ -48,9 +48,6 @@ View3D {
         diffuseMap: Texture {
             source: worldBridge.textureUrl
             generateMipmaps: true
-            magnificationFilter: Texture.Linear
-            minificationFilter: Texture.LinearMipmapLinear
-            mipFilter: Texture.Linear
         }
     }
 

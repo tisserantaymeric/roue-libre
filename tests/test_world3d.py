@@ -4,8 +4,9 @@ import math
 from pathlib import Path
 
 from rouelib.routes import route_from_dict
-from rouelib.world3d import (FORMAT_VERSION, STEP_ALONG, TERRAIN_HALF_WIDTH,
-                             World, _write_png_rgb, build_world, read_png_rgb)
+from rouelib.world3d import (FORMAT_VERSION, STEP_ACROSS, STEP_ALONG,
+                             TERRAIN_HALF_WIDTH, World, _write_png_rgb,
+                             build_world, read_png_rgb)
 
 
 def _route(length_km=9.0, grade=2.0):
@@ -48,16 +49,27 @@ def test_curves_stay_bounded(tmp_path):
     assert min(yaws) > -math.pi / 2 - 0.3
 
 
-def test_obj_is_well_formed(tmp_path):
+def test_glb_is_well_formed(tmp_path):
+    import struct as _struct
     world = build_world(_route(), cache_dir=tmp_path)
-    texts = world.terrain_path.read_text().splitlines()
-    v_count = sum(1 for line in texts if line.startswith("v "))
-    f_count = sum(1 for line in texts if line.startswith("f "))
-    assert v_count > 1000
-    assert f_count > 1000
-    first_v = texts[2].split()
-    assert first_v[0] == "v" and len(first_v) == 4
-    assert texts[3].startswith("vt ") and texts[4].startswith("vn ")
+    data = world.terrain_path.read_bytes()
+    magic, version, total = _struct.unpack_from("<III", data, 0)
+    assert magic == 0x46546C67 and version == 2 and total == len(data)
+    json_len, json_type = _struct.unpack_from("<II", data, 12)
+    assert json_type == 0x4E4F534A
+    gltf = json.loads(data[20:20 + json_len].decode("utf-8"))
+    primitive = gltf["meshes"][0]["primitives"][0]
+    n_vertices = gltf["accessors"][primitive["attributes"]["POSITION"]]["count"]
+    n_indices = gltf["accessors"][primitive["indices"]]["count"]
+    n_cols = int(TERRAIN_HALF_WIDTH * 2 / STEP_ACROSS) + 1
+    assert n_vertices > 1000 and n_vertices % n_cols == 0
+    n_rows = n_vertices // n_cols
+    assert n_indices == 6 * (n_rows - 1) * (n_cols - 1)
+    assert gltf["images"][0]["uri"] == "couleurs.png"
+    bin_len, bin_type = _struct.unpack_from("<II", data, 20 + json_len)
+    assert bin_type == 0x004E4942
+    buffers = gltf["buffers"][0]["byteLength"]
+    assert 0 <= bin_len - buffers < 4
 
 
 def test_texture_road_and_grass(tmp_path):

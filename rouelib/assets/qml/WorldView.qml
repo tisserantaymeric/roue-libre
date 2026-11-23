@@ -40,18 +40,9 @@ View3D {
         eulerRotation.x: worldBridge.camPitch
     }
 
-    // -- terrain ------------------------------------------------------------
+    // -- terrain (matériau et texture venant du GLB) ------------------------
     Model {
         source: worldBridge.terrainUrl
-        materials: DefaultMaterial {
-            diffuseColor: "#ffffff"
-            cullMode: Material.NoCulling
-            specularAmount: 0.05
-            diffuseMap: Texture {
-                source: worldBridge.textureUrl
-                generateMipmaps: true
-            }
-        }
     }
 
     // -- coureur ------------------------------------------------------------

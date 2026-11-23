@@ -7,7 +7,7 @@ La hauteur au centre de la route est exactement celle du parcours, ce qui
 garantit que la pente affichée est la pente réellement envoyée au home trainer.
 
 Sorties (mises en cache par parcours) :
-  - terrain.obj      maillage terrain + route (normales, UV)
+  - terrain.glb      maillage terrain + route (normales, UV, glTF 2.0)
   - couleurs.png     texture 2048×256 : herbe, rochers, route, marquage
   - monde.json       ligne centrale échantillonnée, thème, paramètres
 """
@@ -34,7 +34,7 @@ MARGIN = 150.0
 TEX_WIDTH = 2048
 TEX_HEIGHT = 256
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2
 
 
 def _hash01(n: float) -> float:
@@ -115,7 +115,7 @@ class World:
 
     @property
     def terrain_path(self) -> Path:
-        return self.directory / "terrain.obj"
+        return self.directory / "terrain.glb"
 
     @property
     def texture_path(self) -> Path:
@@ -239,26 +239,82 @@ def _build_mesh(route: Route, center: dict):
     return verts, lats, normals
 
 
-def _write_obj(path: Path, verts, lats, normals):
+def _write_glb(path: Path, verts, lats, normals):
+    """Exporte le terrain au format GLB (glTF 2.0 binaire, lu par Quick 3D)."""
     n_rows, n_cols = len(verts), len(lats)
-    lines = ["# Terrain Roue Libre - genere depuis le parcours", "o terrain"]
+    positions = bytearray()
+    normals_data = bytearray()
+    uvs = bytearray()
     for row, u in verts:
-        v = None
         for j, (x, y, z) in enumerate(row):
-            vv = j / (n_cols - 1)
-            lines.append(f"v {x:.2f} {y:.2f} {z:.2f}")
-            lines.append(f"vt {u:.5f} {vv:.5f}")
-            nx, ny, nz = normals[len(lines) // 3 - 1]
-            lines.append(f"vn {nx:.3f} {ny:.3f} {nz:.3f}")
+            positions += struct.pack("<3f", x, y, z)
+            uvs += struct.pack("<2f", u, j / (n_cols - 1))
+    for nx, ny, nz in normals:
+        normals_data += struct.pack("<3f", nx, ny, nz)
+    indices = bytearray()
     for i in range(n_rows - 1):
         for j in range(n_cols - 1):
-            a = i * n_cols + j + 1
-            b = (i + 1) * n_cols + j + 1
-            c = (i + 1) * n_cols + j + 2
-            d = i * n_cols + j + 2
-            lines.append(f"f {a}/{a}/{a} {b}/{b}/{b} {c}/{c}/{c}")
-            lines.append(f"f {a}/{a}/{a} {c}/{c}/{c} {d}/{d}/{d}")
-    path.write_text("\n".join(lines) + "\n", encoding="ascii")
+            a = i * n_cols + j
+            b = (i + 1) * n_cols + j
+            c = (i + 1) * n_cols + j + 1
+            d = i * n_cols + j + 1
+            indices += struct.pack("<3I", a, b, c)
+            indices += struct.pack("<3I", a, c, d)
+
+    xs = [p[0] for row, _u in verts for p in row]
+    ys = [p[1] for row, _u in verts for p in row]
+    zs = [p[2] for row, _u in verts for p in row]
+    n_vertices = n_rows * n_cols
+    gltf = {
+        "asset": {"version": "2.0", "generator": "Roue Libre"},
+        "scene": 0,
+        "scenes": [{"nodes": [0]}],
+        "nodes": [{"mesh": 0}],
+        "meshes": [{"primitives": [{
+            "attributes": {"POSITION": 0, "NORMAL": 1, "TEXCOORD_0": 2},
+            "indices": 3, "material": 0, "mode": 4}]}],
+        "materials": [{"pbrMetallicRoughness": {
+            "baseColorTexture": {"index": 0},
+            "metallicFactor": 0.0, "roughnessFactor": 0.95},
+            "doubleSided": True}],
+        "textures": [{"sampler": 0, "source": 0}],
+        "images": [{"uri": "couleurs.png"}],
+        "samplers": [{"magFilter": 9729, "minFilter": 9987,
+                      "wrapS": 10497, "wrapT": 10497}],
+        "buffers": [{"byteLength": len(positions) + len(normals_data)
+                     + len(uvs) + len(indices)}],
+        "bufferViews": [
+            {"buffer": 0, "byteOffset": 0, "byteLength": len(positions),
+             "target": 34962},
+            {"buffer": 0, "byteOffset": len(positions),
+             "byteLength": len(normals_data), "target": 34962},
+            {"buffer": 0, "byteOffset": len(positions) + len(normals_data),
+             "byteLength": len(uvs), "target": 34962},
+            {"buffer": 0, "byteOffset": len(positions) + len(normals_data)
+             + len(uvs), "byteLength": len(indices), "target": 34963},
+        ],
+        "accessors": [
+            {"bufferView": 0, "componentType": 5126, "count": n_vertices,
+             "type": "VEC3", "min": [min(xs), min(ys), min(zs)],
+             "max": [max(xs), max(ys), max(zs)]},
+            {"bufferView": 1, "componentType": 5126, "count": n_vertices,
+             "type": "VEC3"},
+            {"bufferView": 2, "componentType": 5126, "count": n_vertices,
+             "type": "VEC2"},
+            {"bufferView": 3, "componentType": 5125,
+             "count": (n_rows - 1) * (n_cols - 1) * 6, "type": "SCALAR"},
+        ],
+    }
+
+    json_chunk = json.dumps(gltf, separators=(",", ":")).encode("utf-8")
+    json_chunk += b" " * ((4 - len(json_chunk) % 4) % 4)
+    bin_chunk = bytes(positions + normals_data + uvs + indices)
+    bin_chunk += b"\x00" * ((4 - len(bin_chunk) % 4) % 4)
+    total = 12 + 8 + len(json_chunk) + 8 + len(bin_chunk)
+    path.write_bytes(
+        struct.pack("<III", 0x46546C67, 2, total)
+        + struct.pack("<II", len(json_chunk), 0x4E4F534A) + json_chunk
+        + struct.pack("<II", len(bin_chunk), 0x004E4942) + bin_chunk)
 
 
 def _write_texture(path: Path, route: Route):
@@ -383,13 +439,13 @@ def build_world(route: Route, cache_dir: Path = None) -> World:
 
     if marker.exists():
         meta = json.loads(marker.read_text(encoding="utf-8"))
-        if meta.get("version") == FORMAT_VERSION and (world_dir / "terrain.obj").exists():
+        if meta.get("version") == FORMAT_VERSION and (world_dir / "terrain.glb").exists():
             return World(world_dir, meta)
 
     world_dir.mkdir(parents=True, exist_ok=True)
     center = _centerline(route, STEP_ALONG / 2.0)
     verts, lats, normals = _build_mesh(route, center)
-    _write_obj(world_dir / "terrain.obj", verts, lats, normals)
+    _write_glb(world_dir / "terrain.glb", verts, lats, normals)
     _write_texture(world_dir / "couleurs.png", route)
 
     meta = {

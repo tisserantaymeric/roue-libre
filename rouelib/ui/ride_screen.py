@@ -87,7 +87,8 @@ class RidePage(QWidget):
 
     TICK_MS = 100
 
-    def __init__(self, session, parent=None):
+    def __init__(self, session, parent=None, jersey_color="#d95f2b",
+                 bike_color="#22262c"):
         super().__init__(parent)
         self.session = session
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -102,7 +103,8 @@ class RidePage(QWidget):
             try:
                 from ..world3d import build_world
                 self.world = build_world(session.route)
-                self.world_view = World3DView(self.world)
+                self.world_view = World3DView(self.world, jersey_color,
+                                              bike_color)
             except Exception:
                 self.world_view = None
                 self.world = None

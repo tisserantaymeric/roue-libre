@@ -90,7 +90,10 @@ automatiquement.
 ## Roadmap
 
 - **Palier 1 (fait)** : monde 3D procédural + coureur animé + caméra suivi
-- **Palier 2** : coureur 3D "propre" (modèle GLTF animé), couleurs personnalisées
+- **Palier 2 (fait)** : coureur articulé (genoux, bras, casque, pédalage
+  réaliste calculé par liaison de segments) + couleurs personnalisées
+  (maillot et vélo, dans Réglages…)
+- **Palier 2 bis (à venir)** : coureur réaliste (modèle GLTF animé de qualité)
 - **Palier 3** : terrains réels IGN — relief haute précision et arbres à partir
   du nuage de points LiDAR HD (haute précision), service altitude IGN pour les
   GPX légers, option texture photo aérienne (BD ORTHO), et données mondiales

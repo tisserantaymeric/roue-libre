@@ -5,12 +5,13 @@ import threading
 from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QFileDialog,
-                             QFormLayout, QGridLayout, QGroupBox, QHBoxLayout,
-                             QLabel, QLineEdit, QListWidget, QListWidgetItem,
-                             QMainWindow, QMessageBox, QPushButton, QStackedWidget,
-                             QTabWidget, QDoubleSpinBox, QTableWidget,
-                             QTableWidgetItem, QVBoxLayout, QWidget)
+from PyQt6.QtWidgets import (QColorDialog, QComboBox, QDialog, QDialogButtonBox,
+                             QFileDialog, QFormLayout, QGridLayout, QGroupBox,
+                             QHBoxLayout, QLabel, QLineEdit, QListWidget,
+                             QListWidgetItem, QMainWindow, QMessageBox,
+                             QPushButton, QStackedWidget, QTabWidget,
+                             QDoubleSpinBox, QTableWidget, QTableWidgetItem,
+                             QVBoxLayout, QWidget)
 
 from .. import ble, storage
 from ..routes import Route, load_builtin_routes, load_gpx
@@ -86,9 +87,21 @@ class SettingsDialog(QDialog):
         self.ftp_spin.setRange(50.0, 600.0)
         self.ftp_spin.setValue(float(settings.get("ftp_w", 200.0)))
         self.ftp_spin.setSuffix(" W")
+        self.jersey_btn = QPushButton("Choisir une couleur…")
+        self._set_swatch(self.jersey_btn,
+                         settings.get("jersey_color", "#d95f2b"))
+        self.jersey_btn.clicked.connect(
+            lambda: self._pick_color("jersey_color", self.jersey_btn))
+        self.bike_btn = QPushButton("Choisir une couleur…")
+        self._set_swatch(self.bike_btn,
+                         settings.get("bike_color", "#22262c"))
+        self.bike_btn.clicked.connect(
+            lambda: self._pick_color("bike_color", self.bike_btn))
         form.addRow("Prénom", self.name_edit)
         form.addRow("Votre poids", self.weight_spin)
         form.addRow("Votre FTP (puissance de référence)", self.ftp_spin)
+        form.addRow("Couleur du maillot", self.jersey_btn)
+        form.addRow("Couleur du vélo", self.bike_btn)
         note = QLabel("Le FTP est votre puissance de référence. Il est fourni par "
                       "la plupart des home trainers après un test, sinon prenez "
                       "la puissance que vous pouvez tenir 20 minutes.")
@@ -99,6 +112,21 @@ class SettingsDialog(QDialog):
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         form.addRow(buttons)
+
+    @staticmethod
+    def _set_swatch(button, color_hex):
+        button.setStyleSheet(
+            f"QPushButton {{ background: {color_hex}; color: white; }}")
+        button.setText(color_hex)
+
+    def _pick_color(self, key, button):
+        from PyQt6.QtGui import QColor
+        current = QColor(self.settings.get(key, "#d95f2b"))
+        color = QColorDialog.getColor(current, self,
+                                      "Choisissez une couleur")
+        if color.isValid():
+            self.settings[key] = color.name()
+            self._set_swatch(button, color.name())
 
     def accept(self):
         self.settings["rider"] = self.name_edit.text().strip() or "Cycliste"
@@ -507,15 +535,16 @@ class MainWindow(QMainWindow):
         self.history_page.back_requested.connect(self._back_to_browse)
         self.history_btn = None
 
-    @staticmethod
-    def _default_settings():
-        return {"rider": "Cycliste", "weight_kg": 78.0, "ftp_w": 200.0,
-                "bike_kg": 10.0, "trainer_name": ""}
-
     def _trainer_ready(self, trainer):
         self.composite = trainer
         self.browse_page.refresh()
         self.stack.setCurrentWidget(self.browse_page)
+
+    @staticmethod
+    def _default_settings():
+        return {"rider": "Cycliste", "weight_kg": 78.0, "ftp_w": 200.0,
+                "bike_kg": 10.0, "trainer_name": "",
+                "jersey_color": "#d95f2b", "bike_color": "#22262c"}
 
     def _start_ride(self, route, workout):
         ftp = float(self.settings.get("ftp_w", 200.0))
@@ -530,7 +559,10 @@ class MainWindow(QMainWindow):
         if self.ride_page is not None:
             self.stack.removeWidget(self.ride_page)
             self.ride_page.deleteLater()
-        self.ride_page = RidePage(session)
+        self.ride_page = RidePage(
+            session,
+            jersey_color=self.settings.get("jersey_color", "#d95f2b"),
+            bike_color=self.settings.get("bike_color", "#22262c"))
         self.ride_page.finished.connect(self._ride_finished)
         self.stack.addWidget(self.ride_page)
         self.stack.setCurrentWidget(self.ride_page)

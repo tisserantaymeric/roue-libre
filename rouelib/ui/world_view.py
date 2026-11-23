@@ -5,11 +5,14 @@ l'interface retombe sur la vue 2D existante — voir ride_screen.py.
 """
 
 import math
+import time
 from pathlib import Path
 
 from PyQt6.QtCore import (QObject, QUrl, QT_VERSION_STR, pyqtProperty,
                           pyqtSignal, pyqtSlot)
 from PyQt6.QtQuickWidgets import QQuickWidget
+
+from ..rider import advance_crank, leg_pose
 
 try:
     import PyQt6.QtQuick3D  # noqa: F401 — enregistre les types Quick3D
@@ -30,25 +33,45 @@ class WorldBridge(QObject):
     viewUpdated = pyqtSignal()
     terrainError = pyqtSignal(str)
 
-    def __init__(self, theme: dict, terrain_url: str, texture_url: str):
+    def __init__(self, theme: dict, terrain_url: str, texture_url: str,
+                 jersey_color: str, bike_color: str):
         super().__init__()
+        self._crank = 0.0
+        self._last_tick = time.monotonic()
+        legs = leg_pose(0.0)
+        legs_b = leg_pose(0.0, 180.0)
         self._d = {
             "sky": theme.get("sky_top", "#1b2a4a"),
             "frame": theme.get("accent", "#f5a623"),
             "terrain_url": terrain_url,
             "texture_url": texture_url,
+            "jersey": jersey_color,
+            "bike": bike_color,
             "px": 0.0, "py": 0.0, "pz": 0.0, "yaw": 0.0, "pitch": 0.0,
             "cx": 0.0, "cy": 0.0, "cz": 0.0, "camYaw": 0.0, "camPitch": 0.0,
             "cadence": 0.0,
+            "crank": 0.0,
+            "thighZ0": legs["thigh_z"], "kneeZ0": legs["knee_z"],
+            "thighZ1": legs_b["thigh_z"], "kneeZ1": legs_b["knee_z"],
         }
 
     def update(self, snap: dict, pose: dict, cam: dict):
+        now = time.monotonic()
+        dt = min(now - self._last_tick, 0.5)
+        self._last_tick = now
+        cadence = float(snap.get("cadence") or 0.0)
+        self._crank = advance_crank(self._crank, cadence, dt)
+        legs_a = leg_pose(self._crank, 0.0)
+        legs_b = leg_pose(self._crank, 180.0)
         self._d.update({
             "px": pose["x"], "py": pose["y"] + 0.02, "pz": pose["z"],
             "yaw": pose["yaw_deg"], "pitch": pose["pitch_deg"],
             "cx": cam["x"], "cy": cam["y"], "cz": cam["z"],
             "camYaw": cam["yaw_deg"], "camPitch": cam["pitch_deg"],
-            "cadence": float(snap.get("cadence") or 0.0),
+            "cadence": cadence,
+            "crank": self._crank,
+            "thighZ0": legs_a["thigh_z"], "kneeZ0": legs_a["knee_z"],
+            "thighZ1": legs_b["thigh_z"], "kneeZ1": legs_b["knee_z"],
         })
         self.viewUpdated.emit()
 
@@ -67,6 +90,34 @@ class WorldBridge(QObject):
     @pyqtProperty(str, notify=viewUpdated)
     def textureUrl(self):
         return self._d["texture_url"]
+
+    @pyqtProperty(str, notify=viewUpdated)
+    def jerseyColor(self):
+        return self._d["jersey"]
+
+    @pyqtProperty(str, notify=viewUpdated)
+    def bikeColor(self):
+        return self._d["bike"]
+
+    @pyqtProperty(float, notify=viewUpdated)
+    def crank(self):
+        return self._d["crank"]
+
+    @pyqtProperty(float, notify=viewUpdated)
+    def thighZ0(self):
+        return self._d["thighZ0"]
+
+    @pyqtProperty(float, notify=viewUpdated)
+    def kneeZ0(self):
+        return self._d["kneeZ0"]
+
+    @pyqtProperty(float, notify=viewUpdated)
+    def thighZ1(self):
+        return self._d["thighZ1"]
+
+    @pyqtProperty(float, notify=viewUpdated)
+    def kneeZ1(self):
+        return self._d["kneeZ1"]
 
     @pyqtProperty(float, notify=viewUpdated)
     def px(self):
@@ -143,12 +194,14 @@ def _camera_for_view(pose: dict) -> dict:
 class World3DView(QQuickWidget):
     error_occurred = pyqtSignal(str)
 
-    def __init__(self, world, parent=None):
+    def __init__(self, world, jersey_color="#d95f2b", bike_color="#22262c",
+                 parent=None):
         super().__init__(parent)
         self.world = world
         url = QUrl.fromLocalFile(str(world.terrain_path)).toString()
         texture = QUrl.fromLocalFile(str(world.texture_path)).toString()
-        self.bridge = WorldBridge(world.theme, url, texture)
+        self.bridge = WorldBridge(world.theme, url, texture,
+                                  jersey_color, bike_color)
         self.rootContext().setContextProperty("worldBridge", self.bridge)
         self.bridge.terrainError.connect(self.error_occurred)
         print("[Roue Libre] Vue 3D : Qt", QT_VERSION_STR, "—",

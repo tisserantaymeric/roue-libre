@@ -58,7 +58,9 @@ View3D {
         id: rider
         position: Qt.vector3d(worldBridge.px, worldBridge.py, worldBridge.pz)
         eulerRotation.y: worldBridge.yaw
-        eulerRotation.x: worldBridge.pitch
+
+        Node { // tangage : suit la pente autour de l'axe latéral
+            eulerRotation.z: worldBridge.pitch
 
         Model { // roue arrière
             source: "#Cylinder"
@@ -136,6 +138,8 @@ View3D {
             position: Qt.vector3d(-0.16, 1.34, 0)
             scale: Qt.vector3d(0.0012, 0.0012, 0.0012)
             materials: DefaultMaterial { diffuseColor: "#d9b070" }
+        }
+
         }
     }
 }

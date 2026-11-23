@@ -19,9 +19,9 @@ except Exception:
 
 QML_PATH = Path(__file__).resolve().parent.parent / "assets" / "qml" / "WorldView.qml"
 
-CAM_BACK = 7.5
-CAM_UP = 3.0
-CAM_AHEAD = 16.0
+CAM_BACK = 5.0
+CAM_UP = 2.2
+CAM_AHEAD = 10.0
 
 
 class WorldBridge(QObject):
@@ -120,7 +120,7 @@ class WorldBridge(QObject):
 
 def _pose_for_view(pose: dict) -> dict:
     return {**pose,
-            "yaw_deg": math.degrees(pose["yaw"]) - 90.0,
+            "yaw_deg": -math.degrees(pose["yaw"]),
             "pitch_deg": math.degrees(pose["pitch"])}
 
 
@@ -130,9 +130,9 @@ def _camera_for_view(pose: dict) -> dict:
     cx = pose["x"] - dx * CAM_BACK
     cy = pose["y"] + CAM_UP
     cz = pose["z"] - dz * CAM_BACK
-    tx = pose["x"] + dx * (CAM_AHEAD - CAM_BACK)
-    ty = pose["y"] + 1.7
-    tz = pose["z"] + dz * (CAM_AHEAD - CAM_BACK)
+    tx = pose["x"] + dx * CAM_AHEAD
+    ty = pose["y"]
+    tz = pose["z"] + dz * CAM_AHEAD
     vdx, vdz = tx - cx, tz - cz
     horizontal = math.hypot(vdx, vdz) or 1.0
     cam_yaw = math.degrees(math.atan2(-vdx, -vdz))

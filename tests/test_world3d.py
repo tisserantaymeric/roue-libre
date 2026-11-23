@@ -65,7 +65,8 @@ def test_glb_is_well_formed(tmp_path):
     assert n_vertices > 1000 and n_vertices % n_cols == 0
     n_rows = n_vertices // n_cols
     assert n_indices == 6 * (n_rows - 1) * (n_cols - 1)
-    assert gltf["images"][0]["uri"] == "couleurs.png"
+    assert gltf["images"][0]["mimeType"] == "image/png"
+    assert "uri" not in gltf["images"][0]
     bin_len, bin_type = _struct.unpack_from("<II", data, 20 + json_len)
     assert bin_type == 0x004E4942
     buffers = gltf["buffers"][0]["byteLength"]

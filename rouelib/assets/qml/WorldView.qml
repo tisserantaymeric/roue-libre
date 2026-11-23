@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick3D
+import QtQuick3D.AssetUtils
 
 View3D {
     id: viewRoot
@@ -40,9 +41,14 @@ View3D {
         eulerRotation.x: worldBridge.camPitch
     }
 
-    // -- terrain (matériau et texture venant du GLB) ------------------------
-    Model {
+    // -- terrain (GLB, matériau et texture intégrés) --------------------------
+    RuntimeLoader {
+        id: terrainLoader
         source: worldBridge.terrainUrl
+        onStatusChanged: {
+            if (status === RuntimeLoader.Error)
+                worldBridge.terrainFailed(errorString)
+        }
     }
 
     // -- coureur ------------------------------------------------------------

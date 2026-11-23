@@ -7,7 +7,8 @@ l'interface retombe sur la vue 2D existante — voir ride_screen.py.
 import math
 from pathlib import Path
 
-from PyQt6.QtCore import QObject, QUrl, pyqtProperty, pyqtSignal
+from PyQt6.QtCore import (QObject, QUrl, QT_VERSION_STR, pyqtProperty,
+                          pyqtSignal, pyqtSlot)
 from PyQt6.QtQuickWidgets import QQuickWidget
 
 try:
@@ -27,6 +28,7 @@ class WorldBridge(QObject):
     """Expose l'état de la sortie aux liaisons QML (apté aux mises à jour)."""
 
     viewUpdated = pyqtSignal()
+    terrainError = pyqtSignal(str)
 
     def __init__(self, theme: dict, terrain_url: str, texture_url: str):
         super().__init__()
@@ -110,6 +112,11 @@ class WorldBridge(QObject):
     def cadence(self):
         return self._d["cadence"]
 
+    @pyqtSlot(str)
+    def terrainFailed(self, message: str):
+        print("[Roue Libre] Échec du chargement du terrain :", message)
+        self.terrainError.emit(message)
+
 
 def _pose_for_view(pose: dict) -> dict:
     return {**pose,
@@ -143,6 +150,9 @@ class World3DView(QQuickWidget):
         texture = QUrl.fromLocalFile(str(world.texture_path)).toString()
         self.bridge = WorldBridge(world.theme, url, texture)
         self.rootContext().setContextProperty("worldBridge", self.bridge)
+        self.bridge.terrainError.connect(self.error_occurred)
+        print("[Roue Libre] Vue 3D : Qt", QT_VERSION_STR, "—",
+              world.terrain_path.name)
         self.setResizeMode(QQuickWidget.ResizeMode.SizeRootObjectToView)
         self.statusChanged.connect(self._on_status)
         self.setSource(QUrl.fromLocalFile(str(QML_PATH)))

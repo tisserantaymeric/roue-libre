@@ -34,7 +34,7 @@ MARGIN = 150.0
 TEX_WIDTH = 2048
 TEX_HEIGHT = 256
 
-FORMAT_VERSION = 2
+FORMAT_VERSION = 3
 
 
 def _hash01(n: float) -> float:
@@ -239,8 +239,12 @@ def _build_mesh(route: Route, center: dict):
     return verts, lats, normals
 
 
-def _write_glb(path: Path, verts, lats, normals):
-    """Exporte le terrain au format GLB (glTF 2.0 binaire, lu par Quick 3D)."""
+def _write_glb(path: Path, verts, lats, normals, texture_png: bytes):
+    """Exporte le terrain au format GLB (glTF 2.0 binaire, lu par Quick 3D).
+
+    La texture PNG est embarquée dans le buffer (images.bin + mimeType), le
+    fichier est donc autonome.
+    """
     n_rows, n_cols = len(verts), len(lats)
     positions = bytearray()
     normals_data = bytearray()
@@ -261,6 +265,9 @@ def _write_glb(path: Path, verts, lats, normals):
             indices += struct.pack("<3I", a, b, c)
             indices += struct.pack("<3I", a, c, d)
 
+    image_offset = (len(positions) + len(normals_data) + len(uvs)
+                    + len(indices))
+
     xs = [p[0] for row, _u in verts for p in row]
     ys = [p[1] for row, _u in verts for p in row]
     zs = [p[2] for row, _u in verts for p in row]
@@ -278,11 +285,11 @@ def _write_glb(path: Path, verts, lats, normals):
             "metallicFactor": 0.0, "roughnessFactor": 0.95},
             "doubleSided": True}],
         "textures": [{"sampler": 0, "source": 0}],
-        "images": [{"uri": "couleurs.png"}],
+        "images": [{"bufferView": 4, "mimeType": "image/png"}],
         "samplers": [{"magFilter": 9729, "minFilter": 9987,
                       "wrapS": 10497, "wrapT": 10497}],
         "buffers": [{"byteLength": len(positions) + len(normals_data)
-                     + len(uvs) + len(indices)}],
+                     + len(uvs) + len(indices) + len(texture_png)}],
         "bufferViews": [
             {"buffer": 0, "byteOffset": 0, "byteLength": len(positions),
              "target": 34962},
@@ -292,6 +299,8 @@ def _write_glb(path: Path, verts, lats, normals):
              "byteLength": len(uvs), "target": 34962},
             {"buffer": 0, "byteOffset": len(positions) + len(normals_data)
              + len(uvs), "byteLength": len(indices), "target": 34963},
+            {"buffer": 0, "byteOffset": image_offset,
+             "byteLength": len(texture_png)},
         ],
         "accessors": [
             {"bufferView": 0, "componentType": 5126, "count": n_vertices,
@@ -308,7 +317,7 @@ def _write_glb(path: Path, verts, lats, normals):
 
     json_chunk = json.dumps(gltf, separators=(",", ":")).encode("utf-8")
     json_chunk += b" " * ((4 - len(json_chunk) % 4) % 4)
-    bin_chunk = bytes(positions + normals_data + uvs + indices)
+    bin_chunk = bytes(positions + normals_data + uvs + indices + texture_png)
     bin_chunk += b"\x00" * ((4 - len(bin_chunk) % 4) % 4)
     total = 12 + 8 + len(json_chunk) + 8 + len(bin_chunk)
     path.write_bytes(
@@ -445,8 +454,9 @@ def build_world(route: Route, cache_dir: Path = None) -> World:
     world_dir.mkdir(parents=True, exist_ok=True)
     center = _centerline(route, STEP_ALONG / 2.0)
     verts, lats, normals = _build_mesh(route, center)
-    _write_glb(world_dir / "terrain.glb", verts, lats, normals)
     _write_texture(world_dir / "couleurs.png", route)
+    _write_glb(world_dir / "terrain.glb", verts, lats, normals,
+               (world_dir / "couleurs.png").read_bytes())
 
     meta = {
         "version": FORMAT_VERSION,

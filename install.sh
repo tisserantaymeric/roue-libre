@@ -8,7 +8,8 @@ if command -v apt-get >/dev/null 2>&1; then
     echo "-- Installation des dépendances système (mot de passe demandé)"
     sudo apt-get install -y python3-venv python3-pip bluetooth bluez \
         libxkbcommon0 libxkbcommon-x11-0 libgl1 libegl1 \
-        libxcb-cursor0 libglib2.0-0t64 libdbus-1-3 libfontconfig1
+        libxcb-cursor0 libglib2.0-0t64 libdbus-1-3 libfontconfig1 \
+        libgl1-mesa-dri
 elif command -v dnf >/dev/null 2>&1; then
     sudo dnf install -y python3-pip bluez libxkbcommon libxcb fontconfig
 elif command -v pacman >/dev/null 2>&1; then

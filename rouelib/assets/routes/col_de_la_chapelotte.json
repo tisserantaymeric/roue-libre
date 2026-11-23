@@ -1,0 +1,23 @@
+{
+  "name": "Col de la Chapelotte — depuis Badonviller",
+  "description": "Vosges centrales (Meurthe-et-Moselle) : montée douce et régulière depuis Badonviller (305 m) jusqu'au col (446 m), haut lieu de la Grande Guerre, puis descente vers le lac de Pierre-Percée.",
+  "theme": {
+    "sky_top": "#3d6699",
+    "sky_bottom": "#b9d4e8",
+    "hill_far": "#5e7291",
+    "hill_near": "#3f5546",
+    "ground": "#42603a",
+    "road": "#4a4d52",
+    "accent": "#d95f2b",
+    "scenery": "pines"
+  },
+  "segments": [
+    {"km": 1.2, "grade": 3.0},
+    {"km": 0.8, "grade": 1.0},
+    {"km": 1.4, "grade": 2.5},
+    {"km": 0.6, "grade": 6.8},
+    {"km": 0.8, "grade": 1.5},
+    {"km": 1.0, "grade": 1.0},
+    {"km": 3.2, "grade": -4.0}
+  ]
+}

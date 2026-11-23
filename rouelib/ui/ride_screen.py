@@ -8,6 +8,13 @@ from PyQt6.QtWidgets import (QGridLayout, QHBoxLayout, QLabel, QMessageBox,
 from .canvas import RideCanvas
 from .theme import format_distance, format_duration, format_power, format_speed
 
+World3DView = None
+HAS_QTQUICK3D = False
+try:
+    from .world_view import HAS_QTQUICK3D, World3DView  # noqa: F401
+except Exception:
+    World3DView = None
+
 
 def _fmt_value(value, suffix="--"):
     if value is None:
@@ -89,8 +96,23 @@ class RidePage(QWidget):
         content = QHBoxLayout()
         root.addLayout(content, 1)
 
-        self.canvas = RideCanvas(session.route.theme)
-        content.addWidget(self.canvas, 4)
+        self.world = None
+        self.world_view = None
+        if World3DView is not None and HAS_QTQUICK3D:
+            try:
+                from ..world3d import build_world
+                self.world = build_world(session.route)
+                self.world_view = World3DView(self.world)
+            except Exception:
+                self.world_view = None
+                self.world = None
+        if self.world_view is not None:
+            content.addWidget(self.world_view, 4)
+            self.world_view.error_occurred.connect(self._fallback_2d)
+            self.canvas = None
+        else:
+            self.canvas = RideCanvas(session.route.theme)
+            content.addWidget(self.canvas, 4)
 
         side = QVBoxLayout()
         content.addLayout(side, 2)
@@ -145,6 +167,19 @@ class RidePage(QWidget):
         self.timer.timeout.connect(self.tick)
         self.timer.start(self.TICK_MS)
         self._finished_emitted = False
+        if self.world_view is not None:
+            self.world_view.update_state(self.session.snapshot())
+
+    def _fallback_2d(self, _message):
+        if self.canvas is not None:
+            return
+        self.world_view.setParent(None)
+        self.world_view.deleteLater()
+        self.world_view = None
+        self.world = None
+        self.canvas = RideCanvas(self.session.route.theme)
+        box = self.layout().itemAt(0).layout()
+        box.insertWidget(0, self.canvas, 4)
 
     # --------------------------- interactions -----------------------------
     def keyPressEvent(self, event):
@@ -188,7 +223,10 @@ class RidePage(QWidget):
         self.session.tick(self.TICK_MS / 1000.0)
         snap = self.session.snapshot()
 
-        self.canvas.update_state(snap)
+        if self.world_view is not None:
+            self.world_view.update_state(snap)
+        else:
+            self.canvas.update_state(snap)
         self.profile.set_progress(snap["distance"])
 
         self.speed_card.set_value(format_speed(snap["speed_kmh"]), "km/h")

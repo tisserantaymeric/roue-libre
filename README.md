@@ -99,6 +99,14 @@ automatiquement.
   GPX légers, option texture photo aérienne (BD ORTHO), et données mondiales
   (SRTM/Copernicus) hors France
 
+## Prototype Godot en parallèle
+
+Un second chantier explore le même jeu sur le moteur 3D open source **Godot**
+(coureur GLTF animé par cinématique, boucle 3D, HUD) : voir
+[`godot-prototype/README.md`](godot-prototype/README.md). L'application PyQt
+ci-dessus reste le produit principal ; les deux partagent les mêmes modèles
+(physique, cinématique du pédalage).
+
 ## Arborescence du code
 
 ```
